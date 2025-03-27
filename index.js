@@ -83,9 +83,9 @@ app.get('/', (req, res) => {
     <!DOCTYPE html>
     <html>
       <head>
-        <meta property="og:image" content="https://via.placeholder.com/600x314.png?text=Open+Mic:+Pick+Your+Style" />
+        <meta property="og:image" content="https://placehold.co/600x314?text=Open+Mic:+Pick+Your+Style" />
         <meta property="fc:frame" content="vNext" />
-        <meta property="fc:frame:image" content="https://via.placeholder.com/600x314.png?text=Open+Mic:+Pick+Your+Style" />
+        <meta property="fc:frame:image" content="https://placehold.co/600x314?text=Open+Mic:+Pick+Your+Style" />
         <meta property="fc:frame:button:1" content="Observational" />
         <meta property="fc:frame:button:2" content="Dark Humor" />
         <meta property="fc:frame:button:3" content="Dad" />
@@ -109,9 +109,9 @@ app.post('/joke', (req, res) => {
     <!DOCTYPE html>
     <html>
       <head>
-        <meta property="og:image" content="https://via.placeholder.com/600x314.png?text=${encodeURIComponent(`${source}: ${joke}`)}" />
+        <meta property="og:image" content="https://placehold.co/600x314?text=${encodeURIComponent(`${source}: ${joke}`)}" />
         <meta property="fc:frame" content="vNext" />
-        <meta property="fc:frame:image" content="https://via.placeholder.com/600x314.png?text=${encodeURIComponent(`${source}: ${joke}`)}" />
+        <meta property="fc:frame:image" content="https://placehold.co/600x314?text=${encodeURIComponent(`${source}: ${joke}`)}" />
         <meta property="fc:frame:button:1" content="Laugh" />
         <meta property="fc:frame:button:2" content="Boo" />
         <meta property="fc:frame:button:3" content="Leaderboard" />
@@ -155,9 +155,9 @@ app.post('/vote', async (req, res) => {
       <!DOCTYPE html>
       <html>
         <head>
-          <meta property="og:image" content="https://via.placeholder.com/600x314.png?text=${encodeURIComponent(reaction)}" />
+          <meta property="og:image" content="https://placehold.co/600x314?text=${encodeURIComponent(reaction)}" />
           <meta property="fc:frame" content="vNext" />
-          <meta property="fc:frame:image" content="https://via.placeholder.com/600x314.png?text=${encodeURIComponent(reaction)}" />
+          <meta property="fc:frame:image" content="https://placehold.co/600x314?text=${encodeURIComponent(reaction)}" />
           <meta property="fc:frame:button:1" content="Another!" />
           <meta property="fc:frame:post_url" content="${req.protocol}://${req.get('host')}/" />
         </head>
@@ -172,9 +172,9 @@ app.post('/vote', async (req, res) => {
       <!DOCTYPE html>
       <html>
         <head>
-          <meta property="og:image" content="https://via.placeholder.com/600x314.png?text=${encodeURIComponent(`Open+Mic+Top+Jokes:\n${leaderboard}`)}" />
+          <meta property="og:image" content="https://placehold.co/600x314?text=${encodeURIComponent(`Open+Mic+Top+Jokes:\n${leaderboard}`)}" />
           <meta property="fc:frame" content="vNext" />
-          <meta property="fc:frame:image" content="https://via.placeholder.com/600x314.png?text=${encodeURIComponent(`Open+Mic+Top+Jokes:\n${leaderboard}`)}" />
+          <meta property="fc:frame:image" content="https://placehold.co/600x314?text=${encodeURIComponent(`Open+Mic+Top+Jokes:\n${leaderboard}`)}" />
           <meta property="fc:frame:button:1" content="Back" />
           <meta property="fc:frame:post_url" content="${req.protocol}://${req.get('host')}/" />
         </head>
@@ -185,9 +185,9 @@ app.post('/vote', async (req, res) => {
       <!DOCTYPE html>
       <html>
         <head>
-          <meta property="og:image" content="https://via.placeholder.com/600x314.png?text=Open+Mic:+Submit+Your+Joke+(1=Obs,+2=Dark,+3=Dad,+4=Crypto)" />
+          <meta property="og:image" content="https://placehold.co/600x314?text=Open+Mic:+Submit+Your+Joke+(1=Obs,+2=Dark,+3=Dad,+4=Crypto)" />
           <meta property="fc:frame" content="vNext" />
-          <meta property="fc:frame:image" content="https://via.placeholder.com/600x314.png?text=Open+Mic:+Submit+Your+Joke+(1=Obs,+2=Dark,+3=Dad,+4=Crypto)" />
+          <meta property="fc:frame:image" content="https://placehold.co/600x314?text=Open+Mic:+Submit+Your+Joke+(1=Obs,+2=Dark,+3=Dad,+4=Crypto)" />
           <meta property="fc:frame:input:text" content="Category # + Joke" />
           <meta property="fc:frame:button:1" content="Send" />
           <meta property="fc:frame:post_url" content="${req.protocol}://${req.get('host')}/submit" />
@@ -212,9 +212,9 @@ app.post('/submit', async (req, res) => {
       <!DOCTYPE html>
       <html>
         <head>
-          <meta property="og:image" content="https://via.placeholder.com/600x314.png?text=Open+Mic:+Joke+Submitted!+Back+to+Mic" />
+          <meta property="og:image" content="https://placehold.co/600x314?text=Open+Mic:+Joke+Submitted!+Back+to+Mic" />
           <meta property="fc:frame" content="vNext" />
-          <meta property="fc:frame:image" content="https://via.placeholder.com/600x314.png?text=Open+Mic:+Joke+Submitted!+Back+to+Mic" />
+          <meta property="fc:frame:image" content="https://placehold.co/600x314?text=Open+Mic:+Joke+Submitted!+Back+to+Mic" />
           <meta property="fc:frame:button:1" content="Back" />
           <meta property="fc:frame:post_url" content="${req.protocol}://${req.get('host')}/" />
         </head>
