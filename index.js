@@ -79,150 +79,161 @@ const jokes = {
 
 // Initial Frame: Choose Style
 app.get('/', (req, res) => {
-  const html = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta property="og:image" content="https://placehold.co/600x314?text=Open+Mic:+Pick+Your+Style" />
-        <meta property="fc:frame" content="vNext" />
-        <meta property="fc:frame:image" content="https://placehold.co/600x314?text=Open+Mic:+Pick+Your+Style" />
-        <meta property="fc:frame:button:1" content="Observational" />
-        <meta property="fc:frame:button:2" content="Dark Humor" />
-        <meta property="fc:frame:button:3" content="Dad" />
-        <meta property="fc:frame:button:4" content="Crypto" />
-        <meta property="fc:frame:post_url" content="${req.protocol}://${req.get('host')}/joke" />
-      </head>
-    </html>
-  `;
-  res.send(html);
-});
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta property="og:image" content="https://placehold.co/600x314?text=Open+Mic:+Pick+Your+Style" />
+          <meta property="fc:frame" content="vNext" />
+          <meta property="fc:frame:image" content="https://placehold.co/600x314?text=Open+Mic:+Pick+Your+Style" />
+          <meta property="fc:frame:button:1" content="Observational" />
+          <meta property="fc:frame:button:2" content="Dark Humor" />
+          <meta property="fc:frame:button:3" content="Dad" />
+          <meta property="fc:frame:button:4" content="Crypto" />
+          <meta property="fc:frame:post_url" content="${req.protocol}://${req.get('host')}/joke" />
+        </head>
+      </html>
+    `;
+    res.set('Content-Type', 'text/html');
+    res.send(html);
+  });
 
 // Deliver Random Joke
 app.post('/joke', (req, res) => {
-  const buttonIndex = req.body.untrustedData.buttonIndex;
-  const category = jokes[buttonIndex] || { pro: ["Mic drop!"], nobody: ["No laughs here!"] };
-  const isPro = Math.random() > 0.5;
-  const jokeList = isPro ? category.pro : category.nobody;
-  const joke = jokeList[Math.floor(Math.random() * jokeList.length)];
-  const source = isPro ? "Pro" : "Nobody";
-  const html = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta property="og:image" content="https://placehold.co/600x314?text=${encodeURIComponent(`${source}: ${joke}`)}" />
-        <meta property="fc:frame" content="vNext" />
-        <meta property="fc:frame:image" content="https://placehold.co/600x314?text=${encodeURIComponent(`${source}: ${joke}`)}" />
-        <meta property="fc:frame:button:1" content="Laugh" />
-        <meta property="fc:frame:button:2" content="Boo" />
-        <meta property="fc:frame:button:3" content="Leaderboard" />
-        <meta property="fc:frame:button:4" content="Submit Joke" />
-        <meta property="fc:frame:post_url" content="${req.protocol}://${req.get('host')}/vote?joke=${encodeURIComponent(joke)}" />
-      </head>
-    </html>
-  `;
-  res.send(html);
-});
+    const buttonIndex = req.body.untrustedData.buttonIndex;
+    const category = jokes[buttonIndex] || { pro: ["Mic drop!"], nobody: ["No laughs here!"] };
+    const isPro = Math.random() > 0.5;
+    const jokeList = isPro ? category.pro : category.nobody;
+    const joke = jokeList[Math.floor(Math.random() * jokeList.length)];
+    const source = isPro ? "Pro" : "Nobody";
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta property="og:image" content="https://placehold.co/600x314?text=${encodeURIComponent(`${source}: ${joke}`)}" />
+          <meta property="fc:frame" content="vNext" />
+          <meta property="fc:frame:image" content="https://placehold.co/600x314?text=${encodeURIComponent(`${source}: ${joke}`)}" />
+          <meta property="fc:frame:button:1" content="Laugh" />
+          <meta property="fc:frame:button:2" content="Boo" />
+          <meta property="fc:frame:button:3" content="Leaderboard" />
+          <meta property="fc:frame:button:4" content="Submit Joke" />
+          <meta property="fc:frame:post_url" content="${req.protocol}://${req.get('host')}/vote?joke=${encodeURIComponent(joke)}" />
+        </head>
+      </html>
+    `;
+    res.set('Content-Type', 'text/html');
+    res.send(html);
+  });
 
 // Voting and Actions
 app.post('/vote', async (req, res) => {
-  const buttonIndex = req.body.untrustedData.buttonIndex;
-  const joke = req.query.joke;
-
-  if (buttonIndex === 1 || buttonIndex === 2) { // Laugh or Boo
-    const voteType = buttonIndex === 1 ? 'laughs' : 'boos';
-    try {
-      const { data } = await axios.get(`${SUPABASE_URL}/rest/v1/votes?joke_text=eq.${encodeURIComponent(joke)}`, {
+    const buttonIndex = req.body.untrustedData.buttonIndex;
+    const joke = req.query.joke;
+  
+    if (buttonIndex === 1 || buttonIndex === 2) { // Laugh or Boo
+      const voteType = buttonIndex === 1 ? 'laughs' : 'boos';
+      try {
+        const { data } = await axios.get(`${SUPABASE_URL}/rest/v1/votes?joke_text=eq.${encodeURIComponent(joke)}`, {
+          headers: { 'apikey': SUPABASE_KEY }
+        });
+        if (data.length) {
+          await axios.patch(`${SUPABASE_URL}/rest/v1/votes?joke_text=eq.${encodeURIComponent(joke)}`, 
+            { [voteType]: data[0][voteType] + 1 },
+            { headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' } }
+          );
+        } else {
+          await axios.post(`${SUPABASE_URL}/rest/v1/votes`, 
+            { joke_text: joke, [voteType]: 1 },
+            { headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' } }
+          );
+        }
+      } catch (error) {
+        console.error('Vote error:', error);
+      }
+      const reaction = buttonIndex === 1
+        ? "Wild Applause! Tip $DEGEN if you laughed!"
+        : "Get off the stage! Try again?";
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta property="og:image" content="https://placehold.co/600x314?text=${encodeURIComponent(reaction)}" />
+            <meta property="fc:frame" content="vNext" />
+            <meta property="fc:frame:image" content="https://placehold.co/600x314?text=${encodeURIComponent(reaction)}" />
+            <meta property="fc:frame:button:1" content="Another!" />
+            <meta property="fc:frame:post_url" content="${req.protocol}://${req.get('host')}/" />
+          </head>
+        </html>
+      `;
+      res.set('Content-Type', 'text/html');
+      res.send(html);
+    } else if (buttonIndex === 3) { // Leaderboard
+      const { data } = await axios.get(`${SUPABASE_URL}/rest/v1/votes?order=laughs.desc&limit=3`, {
         headers: { 'apikey': SUPABASE_KEY }
       });
-      if (data.length) {
-        await axios.patch(`${SUPABASE_URL}/rest/v1/votes?joke_text=eq.${encodeURIComponent(joke)}`, 
-          { [voteType]: data[0][voteType] + 1 },
-          { headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' } }
-        );
-      } else {
-        await axios.post(`${SUPABASE_URL}/rest/v1/votes`, 
-          { joke_text: joke, [voteType]: 1 },
-          { headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' } }
-        );
-      }
-    } catch (error) {
-      console.error('Vote error:', error);
+      const leaderboard = data.map((item, i) => `${i + 1}. ${item.joke_text} (Laughs: ${item.laughs}, Boos: ${item.boos})`).join('\n');
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta property="og:image" content="https://placehold.co/600x314?text=${encodeURIComponent(`Open+Mic+Top+Jokes:\n${leaderboard}`)}" />
+            <meta property="fc:frame" content="vNext" />
+            <meta property="fc:frame:image" content="https://placehold.co/600x314?text=${encodeURIComponent(`Open+Mic+Top+Jokes:\n${leaderboard}`)}" />
+            <meta property="fc:frame:button:1" content="Back" />
+            <meta property="fc:frame:post_url" content="${req.protocol}://${req.get('host')}/" />
+          </head>
+        </html>
+      `;
+      res.set('Content-Type', 'text/html');
+      res.send(html);
+    } else if (buttonIndex === 4) { // Submit Joke
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta property="og:image" content="https://placehold.co/600x314?text=Open+Mic:+Submit+Your+Joke+(1=Obs,+2=Dark,+3=Dad,+4=Crypto)" />
+            <meta property="fc:frame" content="vNext" />
+            <meta property="fc:frame:image" content="https://placehold.co/600x314?text=Open+Mic:+Submit+Your+Joke+(1=Obs,+2=Dark,+3=Dad,+4=Crypto)" />
+            <meta property="fc:frame:input:text" content="Category # + Joke" />
+            <meta property="fc:frame:button:1" content="Send" />
+            <meta property="fc:frame:post_url" content="${req.protocol}://${req.get('host')}/submit" />
+          </head>
+        </html>
+      `;
+      res.set('Content-Type', 'text/html');
+      res.send(html);
     }
-    const reaction = buttonIndex === 1
-      ? "Wild Applause! Tip $DEGEN if you laughed!"
-      : "Get off the stage! Try again?";
-    res.send(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta property="og:image" content="https://placehold.co/600x314?text=${encodeURIComponent(reaction)}" />
-          <meta property="fc:frame" content="vNext" />
-          <meta property="fc:frame:image" content="https://placehold.co/600x314?text=${encodeURIComponent(reaction)}" />
-          <meta property="fc:frame:button:1" content="Another!" />
-          <meta property="fc:frame:post_url" content="${req.protocol}://${req.get('host')}/" />
-        </head>
-      </html>
-    `);
-  } else if (buttonIndex === 3) { // Leaderboard
-    const { data } = await axios.get(`${SUPABASE_URL}/rest/v1/votes?order=laughs.desc&limit=3`, {
-      headers: { 'apikey': SUPABASE_KEY }
-    });
-    const leaderboard = data.map((item, i) => `${i + 1}. ${item.joke_text} (Laughs: ${item.laughs}, Boos: ${item.boos})`).join('\n');
-    res.send(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta property="og:image" content="https://placehold.co/600x314?text=${encodeURIComponent(`Open+Mic+Top+Jokes:\n${leaderboard}`)}" />
-          <meta property="fc:frame" content="vNext" />
-          <meta property="fc:frame:image" content="https://placehold.co/600x314?text=${encodeURIComponent(`Open+Mic+Top+Jokes:\n${leaderboard}`)}" />
-          <meta property="fc:frame:button:1" content="Back" />
-          <meta property="fc:frame:post_url" content="${req.protocol}://${req.get('host')}/" />
-        </head>
-      </html>
-    `);
-  } else if (buttonIndex === 4) { // Submit Joke
-    res.send(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta property="og:image" content="https://placehold.co/600x314?text=Open+Mic:+Submit+Your+Joke+(1=Obs,+2=Dark,+3=Dad,+4=Crypto)" />
-          <meta property="fc:frame" content="vNext" />
-          <meta property="fc:frame:image" content="https://placehold.co/600x314?text=Open+Mic:+Submit+Your+Joke+(1=Obs,+2=Dark,+3=Dad,+4=Crypto)" />
-          <meta property="fc:frame:input:text" content="Category # + Joke" />
-          <meta property="fc:frame:button:1" content="Send" />
-          <meta property="fc:frame:post_url" content="${req.protocol}://${req.get('host')}/submit" />
-        </head>
-      </html>
-    `);
-  }
-});
+  });
 
 // Handle Submissions
 app.post('/submit', async (req, res) => {
-  const input = req.body.untrustedData.inputText;
-  const categoryMatch = input.match(/^\s*([1-4])/);
-  const category = categoryMatch ? parseInt(categoryMatch[1]) : 1;
-  const text = input.replace(/^\s*[1-4]\s*/, '');
-  try {
-    await axios.post(`${SUPABASE_URL}/rest/v1/jokes`, 
-      { category, text, is_pro: false },
-      { headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' } }
-    );
-    res.send(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta property="og:image" content="https://placehold.co/600x314?text=Open+Mic:+Joke+Submitted!+Back+to+Mic" />
-          <meta property="fc:frame" content="vNext" />
-          <meta property="fc:frame:image" content="https://placehold.co/600x314?text=Open+Mic:+Joke+Submitted!+Back+to+Mic" />
-          <meta property="fc:frame:button:1" content="Back" />
-          <meta property="fc:frame:post_url" content="${req.protocol}://${req.get('host')}/" />
-        </head>
-      </html>
-    `);
-  } catch (error) {
-    res.send("Error submitting—try again!");
-  }
-});
+    const input = req.body.untrustedData.inputText;
+    const categoryMatch = input.match(/^\s*([1-4])/);
+    const category = categoryMatch ? parseInt(categoryMatch[1]) : 1;
+    const text = input.replace(/^\s*[1-4]\s*/, '');
+    try {
+      await axios.post(`${SUPABASE_URL}/rest/v1/jokes`, 
+        { category, text, is_pro: false },
+        { headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' } }
+      );
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta property="og:image" content="https://placehold.co/600x314?text=Open+Mic:+Joke+Submitted!+Back+to+Mic" />
+            <meta property="fc:frame" content="vNext" />
+            <meta property="fc:frame:image" content="https://placehold.co/600x314?text=Open+Mic:+Joke+Submitted!+Back+to+Mic" />
+            <meta property="fc:frame:button:1" content="Back" />
+            <meta property="fc:frame:post_url" content="${req.protocol}://${req.get('host')}/" />
+          </head>
+        </html>
+      `;
+      res.set('Content-Type', 'text/html');
+      res.send(html);
+    } catch (error) {
+      res.set('Content-Type', 'text/html');
+      res.send("Error submitting—try again!");
+    }
+  });
 
 app.listen(port, () => console.log(`Running on port ${port}`));
